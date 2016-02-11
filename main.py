@@ -34,6 +34,11 @@ def addTitle(text):
                         parent=base.a2dBottomRight, align=TextNode.ARight,
                         pos=(-0.1, 0.09), shadow=(0, 0, 0, 1))
 
+CAMDIST_MAX = 5.0
+CAMDIST_MIN = 2.0
+CAMERA_TARGET_HEIGHT_DELTA = 3.0
+CAMHEIGHT_MIN_TERRAIN_DELTA = 1.0
+CAMHEIGHT_MIN_PLAYER_DELTA = 2.0
 
 class RoamingRalphDemo(ShowBase):
     def __init__(self):
@@ -87,7 +92,7 @@ class RoamingRalphDemo(ShowBase):
 
         self.floater = NodePath(PandaNode("floater"))
         self.floater.reparentTo(self.ralph)
-        self.floater.setZ(2.0)
+        self.floater.setZ(CAMERA_TARGET_HEIGHT_DELTA)
 
         # Accept the control keys for movement and rotation
 
@@ -215,12 +220,12 @@ class RoamingRalphDemo(ShowBase):
         camvec.setZ(0)
         camdist = camvec.length()
         camvec.normalize()
-        if camdist > 10.0:
-            self.camera.setPos(self.camera.getPos() + camvec * (camdist - 10))
-            camdist = 10.0
-        if camdist < 5.0:
-            self.camera.setPos(self.camera.getPos() - camvec * (5 - camdist))
-            camdist = 5.0
+        if camdist > CAMDIST_MAX:
+            self.camera.setPos(self.camera.getPos() + camvec * (camdist - int(CAMDIST_MAX)))
+            camdist = CAMDIST_MAX
+        if camdist < CAMDIST_MIN:
+            self.camera.setPos(self.camera.getPos() - camvec * (int(CAMDIST_MIN) - camdist))
+            camdist = CAMDIST_MIN
 
         # Normally, we would have to call traverse() to check for collisions.
         # However, the class ShowBase that we inherit from has a task to do
@@ -246,9 +251,9 @@ class RoamingRalphDemo(ShowBase):
         entries.sort(key=lambda x: x.getSurfacePoint(render).getZ())
 
         if len(entries) > 0 and entries[0].getIntoNode().getName() == "terrain":
-            self.camera.setZ(entries[0].getSurfacePoint(render).getZ() + 1.0)
-        if self.camera.getZ() < self.ralph.getZ() + 2.0:
-            self.camera.setZ(self.ralph.getZ() + 2.0)
+            self.camera.setZ(entries[0].getSurfacePoint(render).getZ() + CAMHEIGHT_MIN_TERRAIN_DELTA)
+        if self.camera.getZ() < self.ralph.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA:
+            self.camera.setZ(self.ralph.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA)
 
         # The camera should look in ralph's direction,
         # but it should also try to stay horizontal, so look at
