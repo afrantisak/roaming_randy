@@ -40,7 +40,7 @@ CAMERA_TARGET_HEIGHT_DELTA = 3.0
 CAMHEIGHT_MIN_TERRAIN_DELTA = 1.0
 CAMHEIGHT_MIN_PLAYER_DELTA = 2.0
 
-class RoamingRalphDemo(ShowBase):
+class Game(ShowBase):
     def __init__(self):
         # Set up the window, camera, etc.
         ShowBase.__init__(self)
@@ -53,13 +53,11 @@ class RoamingRalphDemo(ShowBase):
             "left": 0, "right": 0, "forward": 0, "backward": 0, "cam-left": 0, "cam-right": 0}
 
         # Post the instructions
-        self.title = addTitle(
-            "Panda3D Tutorial: Roaming Ralph (Walking on Uneven Terrain)")
         self.inst1 = addInstructions(0.06, "[ESC]: Quit")
-        self.inst2 = addInstructions(0.12, "[Left Arrow]: Rotate Ralph Left")
-        self.inst3 = addInstructions(0.18, "[Right Arrow]: Rotate Ralph Right")
-        self.inst4 = addInstructions(0.24, "[Up Arrow]: Run Ralph Forward")
-        self.inst5 = addInstructions(0.30, "[Down Arrow]: Run Ralph Backward")
+        self.inst2 = addInstructions(0.12, "[Left Arrow]: Rotate Left")
+        self.inst3 = addInstructions(0.18, "[Right Arrow]: Rotate Right")
+        self.inst4 = addInstructions(0.24, "[Up Arrow]: Run Forward")
+        self.inst5 = addInstructions(0.30, "[Down Arrow]: Run Backward")
         self.inst6 = addInstructions(0.36, "[A]: Rotate Camera Left")
         self.inst7 = addInstructions(0.42, "[S]: Rotate Camera Right")
 
@@ -78,21 +76,21 @@ class RoamingRalphDemo(ShowBase):
         self.environ = loader.loadModel("models/world")
         self.environ.reparentTo(render)
 
-        # Create the main character, Ralph
+        # Create the main character
 
-        ralphStartPos = self.environ.find("**/start_point").getPos()
-        self.ralph = Actor("models/ralph",
-                           {"run": "models/ralph-run",
-                            "walk": "models/ralph-walk"})
-        self.ralph.reparentTo(render)
-        self.ralph.setScale(.2)
-        self.ralph.setPos(ralphStartPos + (0, 0, 0.5))
+        playerStartPos = self.environ.find("**/start_point").getPos()
+        self.player = Actor("models/player",
+                           {"run": "models/player-run",
+                            "walk": "models/player-walk"})
+        self.player.reparentTo(render)
+        self.player.setScale(.2)
+        self.player.setPos(playerStartPos + (0, 0, 0.5))
 
-        # Create a floater object, which floats 2 units above ralph.  We
+        # Create a floater object, which floats 2 units above player.  We
         # use this as a target for the camera to look at.
 
         self.floater = NodePath(PandaNode("floater"))
-        self.floater.reparentTo(self.ralph)
+        self.floater.reparentTo(self.player)
         self.floater.setZ(CAMERA_TARGET_HEIGHT_DELTA)
 
         # Accept the control keys for movement and rotation
@@ -118,26 +116,26 @@ class RoamingRalphDemo(ShowBase):
 
         # Set up the camera
         self.disableMouse()
-        self.camera.setPos(self.ralph.getX(), self.ralph.getY() + 10, 2)
+        self.camera.setPos(self.player.getX(), self.player.getY() + 10, 2)
 
         # We will detect the height of the terrain by creating a collision
         # ray and casting it downward toward the terrain.  One ray will
-        # start above ralph's head, and the other will start above the camera.
+        # start above player's head, and the other will start above the camera.
         # A ray may hit the terrain, or it may hit a rock or a tree.  If it
         # hits the terrain, we can detect the height.  If it hits anything
         # else, we rule that the move is illegal.
         self.cTrav = CollisionTraverser()
 
-        self.ralphGroundRay = CollisionRay()
-        self.ralphGroundRay.setOrigin(0, 0, 9)
-        self.ralphGroundRay.setDirection(0, 0, -1)
-        self.ralphGroundCol = CollisionNode('ralphRay')
-        self.ralphGroundCol.addSolid(self.ralphGroundRay)
-        self.ralphGroundCol.setFromCollideMask(CollideMask.bit(0))
-        self.ralphGroundCol.setIntoCollideMask(CollideMask.allOff())
-        self.ralphGroundColNp = self.ralph.attachNewNode(self.ralphGroundCol)
-        self.ralphGroundHandler = CollisionHandlerQueue()
-        self.cTrav.addCollider(self.ralphGroundColNp, self.ralphGroundHandler)
+        self.playerGroundRay = CollisionRay()
+        self.playerGroundRay.setOrigin(0, 0, 9)
+        self.playerGroundRay.setDirection(0, 0, -1)
+        self.playerGroundCol = CollisionNode('playerRay')
+        self.playerGroundCol.addSolid(self.playerGroundRay)
+        self.playerGroundCol.setFromCollideMask(CollideMask.bit(0))
+        self.playerGroundCol.setIntoCollideMask(CollideMask.allOff())
+        self.playerGroundColNp = self.player.attachNewNode(self.playerGroundCol)
+        self.playerGroundHandler = CollisionHandlerQueue()
+        self.cTrav.addCollider(self.playerGroundColNp, self.playerGroundHandler)
 
         self.camGroundRay = CollisionRay()
         self.camGroundRay.setOrigin(0, 0, 9)
@@ -151,7 +149,7 @@ class RoamingRalphDemo(ShowBase):
         self.cTrav.addCollider(self.camGroundColNp, self.camGroundHandler)
 
         # Uncomment this line to see the collision rays
-        #self.ralphGroundColNp.show()
+        #self.playerGroundColNp.show()
         #self.camGroundColNp.show()
 
         # Uncomment this line to show a visual representation of the
@@ -189,39 +187,39 @@ class RoamingRalphDemo(ShowBase):
         if self.keyMap["cam-right"]:
             self.camera.setX(self.camera, +20 * dt)
 
-        # save ralph's initial position so that we can restore it,
+        # save player's initial position so that we can restore it,
         # in case he falls off the map or runs into something.
 
-        startpos = self.ralph.getPos()
+        startpos = self.player.getPos()
 
-        # If a move-key is pressed, move ralph in the specified direction.
+        # If a move-key is pressed, move player in the specified direction.
 
         if self.keyMap["left"]:
-            self.ralph.setH(self.ralph.getH() + 300 * dt)
+            self.player.setH(self.player.getH() + 300 * dt)
         if self.keyMap["right"]:
-            self.ralph.setH(self.ralph.getH() - 300 * dt)
+            self.player.setH(self.player.getH() - 300 * dt)
         if self.keyMap["forward"]:
-            self.ralph.setY(self.ralph, -25 * dt)
+            self.player.setY(self.player, -25 * dt)
         if self.keyMap["backward"]:
-            self.ralph.setY(self.ralph, 25 * dt)
+            self.player.setY(self.player, 25 * dt)
 
-        # If ralph is moving, loop the run animation.
+        # If player is moving, loop the run animation.
         # If he is standing still, stop the animation.
 
         if self.keyMap["forward"] or self.keyMap["backward"] or self.keyMap["left"] or self.keyMap["right"]:
             if self.isMoving is False:
-                self.ralph.loop("run")
+                self.player.loop("run")
                 self.isMoving = True
         else:
             if self.isMoving:
-                self.ralph.stop()
-                self.ralph.pose("walk", 5)
+                self.player.stop()
+                self.player.pose("walk", 5)
                 self.isMoving = False
 
-        # If the camera is too far from ralph, move it closer.
-        # If the camera is too close to ralph, move it farther.
+        # If the camera is too far from player, move it closer.
+        # If the camera is too close to player, move it farther.
 
-        camvec = self.ralph.getPos() - self.camera.getPos()
+        camvec = self.player.getPos() - self.camera.getPos()
         camvec.setZ(0)
         camdist = camvec.length()
         camvec.normalize()
@@ -237,36 +235,36 @@ class RoamingRalphDemo(ShowBase):
         # this for us, if we assign a CollisionTraverser to self.cTrav.
         self.cTrav.traverse(render)
 
-        # Adjust ralph's Z coordinate.  If ralph's ray hit terrain,
+        # Adjust player's Z coordinate.  If player's ray hit terrain,
         # update his Z. If it hit anything else, or didn't hit anything, put
         # him back where he was last frame.
 
-        entries = list(self.ralphGroundHandler.getEntries())
+        entries = list(self.playerGroundHandler.getEntries())
         entries.sort(key=lambda x: x.getSurfacePoint(render).getZ())
 
         if len(entries) > 0 and entries[0].getIntoNode().getName() == "terrain":
-            self.ralph.setZ(entries[0].getSurfacePoint(render).getZ())
+            self.player.setZ(entries[0].getSurfacePoint(render).getZ())
         else:
-            self.ralph.setPos(startpos)
+            self.player.setPos(startpos)
 
         # Keep the camera at one foot above the terrain,
-        # or two feet above ralph, whichever is greater.
+        # or two feet above player, whichever is greater.
 
         entries = list(self.camGroundHandler.getEntries())
         entries.sort(key=lambda x: x.getSurfacePoint(render).getZ())
 
         if len(entries) > 0 and entries[0].getIntoNode().getName() == "terrain":
             self.camera.setZ(entries[0].getSurfacePoint(render).getZ() + CAMHEIGHT_MIN_TERRAIN_DELTA)
-        if self.camera.getZ() < self.ralph.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA:
-            self.camera.setZ(self.ralph.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA)
+        if self.camera.getZ() < self.player.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA:
+            self.camera.setZ(self.player.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA)
 
-        # The camera should look in ralph's direction,
+        # The camera should look in player's direction,
         # but it should also try to stay horizontal, so look at
-        # a floater which hovers above ralph's head.
+        # a floater which hovers above player's head.
         self.camera.lookAt(self.floater)
 
         return task.cont
 
 
-demo = RoamingRalphDemo()
-demo.run()
+game = Game()
+game.run()
