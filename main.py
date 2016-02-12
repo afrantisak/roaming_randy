@@ -1,14 +1,5 @@
 #!/usr/bin/env python
 
-# Author: Ryan Myers
-# Models: Jeff Styers, Reagan Heller
-#
-# Last Updated: 2015-03-13
-#
-# This tutorial provides an example of creating a character
-# and having it walk around on uneven terrain, as well
-# as implementing a fully rotatable camera.
-
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import CollisionTraverser, CollisionNode
 from panda3d.core import CollisionHandlerQueue, CollisionRay
@@ -28,7 +19,8 @@ def addInstructions(pos, msg):
                         shadow=(0, 0, 0, 1), parent=base.a2dTopLeft,
                         pos=(0.08, -pos - 0.04), align=TextNode.ALeft)
 
-CAMDIST_MAX = 5.0
+BACKGROUND_COLOR = (0, 0, 0, 1) # BLACK
+CAMDIST_MAX = 5.0 
 CAMDIST_MIN = 2.0
 CAMERA_TARGET_HEIGHT_DELTA = 3.0
 CAMERA_POSITION_HEIGHT_DELTA_MIN = 1.0
@@ -40,11 +32,12 @@ class Game(ShowBase):
         ShowBase.__init__(self)
 
         # Set the background color to black
-        self.win.setClearColor((0, 0, 0, 1))
+        self.win.setClearColor(BACKGROUND_COLOR)
 
-        # This is used to store which keys are currently pressed.
-        self.keyMap = {
-            "left": 0, "right": 0, "forward": 0, "backward": 0, "cam-left": 0, "cam-right": 0}
+        # This is used to store which actions are currently requested by the user
+        action_names = ['left', 'right', 'forward', 'backward', 'cam-left', 'cam-right']
+        for action_name in action_names:
+            self.keyMap[action_name] = False
 
         # Post the instructions
         self.inst1 = addInstructions(0.06, "[ESC]: Quit")
@@ -88,7 +81,6 @@ class Game(ShowBase):
         self.floater.setZ(CAMERA_TARGET_HEIGHT_DELTA)
 
         # Accept the control keys for movement and rotation
-
         key_map = {
             "escape":         lambda: sys.exit(),
             "arrow_left":     lambda: self.setKey("left", True),
@@ -104,8 +96,8 @@ class Game(ShowBase):
             "a-up":           lambda: self.setKey("cam-left", False),
             "s-up":           lambda: self.setKey("cam-right", False)
             }
-        for key, action in key_map.iteritems():
-            self.accept(key, action)
+        for key_name, action in key_map.iteritems():
+            self.accept(key_name, action)
 
         taskMgr.add(self.move, "moveTask")
 
