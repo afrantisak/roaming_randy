@@ -14,10 +14,16 @@ import os
 import math
 
 # Function to put instructions on the screen.
-def addInstructions(pos, msg):
-    return OnscreenText(text=msg, style=1, fg=(1, 1, 1, 1), scale=.05,
-                        shadow=(0, 0, 0, 1), parent=base.a2dTopLeft,
-                        pos=(0.08, -pos - 0.04), align=TextNode.ALeft)
+class Instructions(object):
+    def __init__(self):
+        self.y = 0.0
+        self.y_delta = 0.06
+
+    def add(self, msg):
+        self.y += self.y_delta
+        return OnscreenText(text=msg, style=1, fg=(1, 1, 1, 1), scale=.05,
+                            shadow=(0, 0, 0, 1), parent=base.a2dTopLeft,
+                            pos=(0.08, -self.y - 0.04), align=TextNode.ALeft)
 
 BACKGROUND_COLOR = (0, 0, 0, 1) # BLACK
 CAMDIST_MAX = 5.0 
@@ -36,17 +42,19 @@ class Game(ShowBase):
 
         # This is used to store which actions are currently requested by the user
         action_names = ['left', 'right', 'forward', 'backward', 'cam-left', 'cam-right']
+        self.keyMap = {}
         for action_name in action_names:
             self.keyMap[action_name] = False
 
         # Post the instructions
-        self.inst1 = addInstructions(0.06, "[ESC]: Quit")
-        self.inst2 = addInstructions(0.12, "[Left Arrow]: Rotate Left")
-        self.inst3 = addInstructions(0.18, "[Right Arrow]: Rotate Right")
-        self.inst4 = addInstructions(0.24, "[Up Arrow]: Run Forward")
-        self.inst5 = addInstructions(0.30, "[Down Arrow]: Run Backward")
-        self.inst6 = addInstructions(0.36, "[A]: Rotate Camera Left")
-        self.inst7 = addInstructions(0.42, "[S]: Rotate Camera Right")
+        inst = Instructions()
+        inst.add("[ESC]: Quit")
+        inst.add("[Left Arrow]: Rotate Left")
+        inst.add("[Right Arrow]: Rotate Right")
+        inst.add("[Up Arrow]: Run Forward")
+        inst.add("[Down Arrow]: Run Backward")
+        inst.add("[A]: Rotate Camera Left")
+        inst.add("[S]: Rotate Camera Right")
 
         # Set up the environment
         #
@@ -254,7 +262,6 @@ class Game(ShowBase):
         self.camera.lookAt(self.floater)
 
         return task.cont
-
 
 game = Game()
 game.run()
