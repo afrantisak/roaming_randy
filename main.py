@@ -28,17 +28,11 @@ def addInstructions(pos, msg):
                         shadow=(0, 0, 0, 1), parent=base.a2dTopLeft,
                         pos=(0.08, -pos - 0.04), align=TextNode.ALeft)
 
-# Function to put title on the screen.
-def addTitle(text):
-    return OnscreenText(text=text, style=1, fg=(1, 1, 1, 1), scale=.07,
-                        parent=base.a2dBottomRight, align=TextNode.ARight,
-                        pos=(-0.1, 0.09), shadow=(0, 0, 0, 1))
-
 CAMDIST_MAX = 5.0
 CAMDIST_MIN = 2.0
 CAMERA_TARGET_HEIGHT_DELTA = 3.0
-CAMHEIGHT_MIN_TERRAIN_DELTA = 1.0
-CAMHEIGHT_MIN_PLAYER_DELTA = 2.0
+CAMERA_POSITION_HEIGHT_DELTA_MIN = 1.0
+CAMERA_POSITION_HEIGHT_DELTA_MAX = 2.0
 
 class Game(ShowBase):
     def __init__(self):
@@ -95,19 +89,23 @@ class Game(ShowBase):
 
         # Accept the control keys for movement and rotation
 
-        self.accept("escape", sys.exit)
-        self.accept("arrow_left", self.setKey, ["left", True])
-        self.accept("arrow_right", self.setKey, ["right", True])
-        self.accept("arrow_up", self.setKey, ["forward", True])
-        self.accept("arrow_down", self.setKey, ["backward", True])
-        self.accept("a", self.setKey, ["cam-left", True])
-        self.accept("s", self.setKey, ["cam-right", True])
-        self.accept("arrow_left-up", self.setKey, ["left", False])
-        self.accept("arrow_right-up", self.setKey, ["right", False])
-        self.accept("arrow_up-up", self.setKey, ["forward", False])
-        self.accept("arrow_down-up", self.setKey, ["backward", False])
-        self.accept("a-up", self.setKey, ["cam-left", False])
-        self.accept("s-up", self.setKey, ["cam-right", False])
+        key_map = {
+            "escape":         lambda: sys.exit(),
+            "arrow_left":     lambda: self.setKey("left", True),
+            "arrow_right":    lambda: self.setKey("right", True),
+            "arrow_up":       lambda: self.setKey("forward", True),
+            "arrow_down":     lambda: self.setKey("backward", True),
+            "a":              lambda: self.setKey("cam-left", True),
+            "s":              lambda: self.setKey("cam-right", True),
+            "arrow_left-up":  lambda: self.setKey("left", False),
+            "arrow_right-up": lambda: self.setKey("right", False),
+            "arrow_up-up":    lambda: self.setKey("forward", False),
+            "arrow_down-up":  lambda: self.setKey("backward", False),
+            "a-up":           lambda: self.setKey("cam-left", False),
+            "s-up":           lambda: self.setKey("cam-right", False)
+            }
+        for key, action in key_map.iteritems():
+            self.accept(key, action)
 
         taskMgr.add(self.move, "moveTask")
 
@@ -254,9 +252,9 @@ class Game(ShowBase):
         entries.sort(key=lambda x: x.getSurfacePoint(render).getZ())
 
         if len(entries) > 0 and entries[0].getIntoNode().getName() == "terrain":
-            self.camera.setZ(entries[0].getSurfacePoint(render).getZ() + CAMHEIGHT_MIN_TERRAIN_DELTA)
-        if self.camera.getZ() < self.player.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA:
-            self.camera.setZ(self.player.getZ() + CAMHEIGHT_MIN_PLAYER_DELTA)
+            self.camera.setZ(entries[0].getSurfacePoint(render).getZ() + CAMERA_POSITION_HEIGHT_DELTA_MIN)
+        if self.camera.getZ() < self.player.getZ() + CAMERA_POSITION_HEIGHT_DELTA_MAX:
+            self.camera.setZ(self.player.getZ() + CAMERA_POSITION_HEIGHT_DELTA_MAX)
 
         # The camera should look in player's direction,
         # but it should also try to stay horizontal, so look at
