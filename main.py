@@ -26,8 +26,8 @@ class Instructions(object):
                             pos=(0.08, -self.y - 0.04), align=TextNode.ALeft)
 
 BACKGROUND_COLOR = (0, 0, 0, 1) # BLACK
-CAMDIST_MAX = 5.0 
-CAMDIST_MIN = 2.0
+CAMERA_DISTANCE_MAX = 5.0 
+CAMERA_DISTANCE_MIN = 2.0
 CAMERA_TARGET_HEIGHT_DELTA = 3.0
 CAMERA_POSITION_HEIGHT_DELTA_MIN = 1.0
 CAMERA_POSITION_HEIGHT_DELTA_MAX = 2.0
@@ -147,12 +147,12 @@ class Game(ShowBase):
         self.cTrav.addCollider(self.camGroundColNp, self.camGroundHandler)
 
         # Uncomment this line to see the collision rays
-        #self.playerGroundColNp.show()
-        #self.camGroundColNp.show()
+        self.playerGroundColNp.show()
+        self.camGroundColNp.show()
 
         # Uncomment this line to show a visual representation of the
         # collisions occuring
-        #self.cTrav.showCollisions(render)
+        self.cTrav.showCollisions(render)
 
         # Create some lighting
         ambientLight = AmbientLight("ambientLight")
@@ -221,12 +221,12 @@ class Game(ShowBase):
         camvec.setZ(0)
         camdist = camvec.length()
         camvec.normalize()
-        if camdist > CAMDIST_MAX:
-            self.camera.setPos(self.camera.getPos() + camvec * (camdist - int(CAMDIST_MAX)))
-            camdist = CAMDIST_MAX
-        if camdist < CAMDIST_MIN:
-            self.camera.setPos(self.camera.getPos() - camvec * (int(CAMDIST_MIN) - camdist))
-            camdist = CAMDIST_MIN
+        if camdist > CAMERA_DISTANCE_MAX:
+            self.camera.setPos(self.camera.getPos() + camvec * (camdist - int(CAMERA_DISTANCE_MAX)))
+            camdist = CAMERA_DISTANCE_MAX
+        if camdist < CAMERA_DISTANCE_MIN:
+            self.camera.setPos(self.camera.getPos() - camvec * (int(CAMERA_DISTANCE_MIN) - camdist))
+            camdist = CAMERA_DISTANCE_MIN
 
         # Normally, we would have to call traverse() to check for collisions.
         # However, the class ShowBase that we inherit from has a task to do
