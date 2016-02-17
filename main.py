@@ -40,12 +40,6 @@ class Game(ShowBase):
         # Set the background color to black
         self.win.setClearColor(BACKGROUND_COLOR)
 
-        # This is used to store which actions are currently requested by the user
-        action_names = ['left', 'right', 'forward', 'backward', 'cam-left', 'cam-right']
-        self.keyMap = {}
-        for action_name in action_names:
-            self.keyMap[action_name] = False
-
         # Set up the environment
         #
         # This environment model contains collision meshes.  If you look
@@ -84,25 +78,27 @@ class Game(ShowBase):
             return lambda: self.setKey(name, False)
         # Accept the control keys for movement and rotation
         key_map = [
-            # name             action                help
-            # ----             ------                ----
-            ("escape",         lambda: sys.exit(),   '[ESC]: Quit'),
-            ("arrow_left",     key_on("left"),       "[Left Arrow]: Rotate Left"),
-            ("arrow_right",    key_on("right"),      "[Right Arrow]: Rotate Right"),
-            ("arrow_up",       key_on("forward"),    "[Up Arrow]: Run Forward"),
-            ("arrow_down",     key_on("backward"),   "[Down Arrow]: Run Backward"),
-            ("a",              key_on("cam-left"),   "[A]: Rotate Camera Left"),
-            ("s",              key_on("cam-right"),  "[S]: Rotate Camera Right"),
-            ("arrow_left-up",  key_off("left"),      None),
-            ("arrow_right-up", key_off("right"),     None),
-            ("arrow_up-up",    key_off("forward"),   None),
-            ("arrow_down-up",  key_off("backward"),  None),
-            ("a-up",           key_off("cam-left"),  None),
-            ("s-up",           key_off("cam-right"), None),
+            # alias            key          action                help
+            # -----            ------       ------                ----
+            ("escape",         None,        lambda: sys.exit(),   '[ESC]: Quit'),
+            ("arrow_left",     'left',      key_on("left"),       "[Left Arrow]: Rotate Left"),
+            ("arrow_right",    'right',     key_on("right"),      "[Right Arrow]: Rotate Right"),
+            ("arrow_up",       'forward',   key_on("forward"),    "[Up Arrow]: Run Forward"),
+            ("arrow_down",     'backward',  key_on("backward"),   "[Down Arrow]: Run Backward"),
+            ("a",              'cam-left',  key_on("cam-left"),   "[A]: Rotate Camera Left"),
+            ("s",              'cam-right', key_on("cam-right"),  "[S]: Rotate Camera Right"),
+            ("arrow_left-up",  'left',      key_off("left"),      None),
+            ("arrow_right-up", 'right',     key_off("right"),     None),
+            ("arrow_up-up",    'forward',   key_off("forward"),   None),
+            ("arrow_down-up",  'backward',  key_off("backward"),  None),
+            ("a-up",           'cam-left',  key_off("cam-left"),  None),
+            ("s-up",           'cam-right', key_off("cam-right"), None),
             ]
+        self.keyMap = {}
         inst = Instructions()
-        for key_name, action, description in key_map:
-            self.accept(key_name, action)
+        for alias, key, action, description in key_map:
+            self.setKey(key, False)
+            self.accept(alias, action)
             if description:
                 inst.add(description)
 
