@@ -46,16 +46,6 @@ class Game(ShowBase):
         for action_name in action_names:
             self.keyMap[action_name] = False
 
-        # Post the instructions
-        inst = Instructions()
-        inst.add("[ESC]: Quit")
-        inst.add("[Left Arrow]: Rotate Left")
-        inst.add("[Right Arrow]: Rotate Right")
-        inst.add("[Up Arrow]: Run Forward")
-        inst.add("[Down Arrow]: Run Backward")
-        inst.add("[A]: Rotate Camera Left")
-        inst.add("[S]: Rotate Camera Right")
-
         # Set up the environment
         #
         # This environment model contains collision meshes.  If you look
@@ -88,24 +78,33 @@ class Game(ShowBase):
         self.floater.reparentTo(self.player)
         self.floater.setZ(CAMERA_TARGET_HEIGHT_DELTA)
 
+        def key_on(name):
+            return lambda: self.setKey(name, True)
+        def key_off(name):
+            return lambda: self.setKey(name, False)
         # Accept the control keys for movement and rotation
-        key_map = {
-            "escape":         lambda: sys.exit(),
-            "arrow_left":     lambda: self.setKey("left", True),
-            "arrow_right":    lambda: self.setKey("right", True),
-            "arrow_up":       lambda: self.setKey("forward", True),
-            "arrow_down":     lambda: self.setKey("backward", True),
-            "a":              lambda: self.setKey("cam-left", True),
-            "s":              lambda: self.setKey("cam-right", True),
-            "arrow_left-up":  lambda: self.setKey("left", False),
-            "arrow_right-up": lambda: self.setKey("right", False),
-            "arrow_up-up":    lambda: self.setKey("forward", False),
-            "arrow_down-up":  lambda: self.setKey("backward", False),
-            "a-up":           lambda: self.setKey("cam-left", False),
-            "s-up":           lambda: self.setKey("cam-right", False)
-            }
-        for key_name, action in key_map.iteritems():
+        key_map = [
+            # name             action                help
+            # ----             ------                ----
+            ("escape",         lambda: sys.exit(),   '[ESC]: Quit'),
+            ("arrow_left",     key_on("left"),       "[Left Arrow]: Rotate Left"),
+            ("arrow_right",    key_on("right"),      "[Right Arrow]: Rotate Right"),
+            ("arrow_up",       key_on("forward"),    "[Up Arrow]: Run Forward"),
+            ("arrow_down",     key_on("backward"),   "[Down Arrow]: Run Backward"),
+            ("a",              key_on("cam-left"),   "[A]: Rotate Camera Left"),
+            ("s",              key_on("cam-right"),  "[S]: Rotate Camera Right"),
+            ("arrow_left-up",  key_off("left"),      None),
+            ("arrow_right-up", key_off("right"),     None),
+            ("arrow_up-up",    key_off("forward"),   None),
+            ("arrow_down-up",  key_off("backward"),  None),
+            ("a-up",           key_off("cam-left"),  None),
+            ("s-up",           key_off("cam-right"), None),
+            ]
+        inst = Instructions()
+        for key_name, action, description in key_map:
             self.accept(key_name, action)
+            if description:
+                inst.add(description)
 
         taskMgr.add(self.move, "moveTask")
 
