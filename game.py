@@ -84,9 +84,9 @@ class Game(ShowBase):
 
         self.first_person = False
 
-        def key_on(name):
+        def key_dn(name):
             return lambda: self.setKey(name, True)
-        def key_off(name):
+        def key_up(name):
             return lambda: self.setKey(name, False)
         def quit():
             self.destroy()
@@ -94,28 +94,29 @@ class Game(ShowBase):
             self.first_person = not self.first_person
         # Accept the control keys for movement and rotation
         key_map = [
-            # alias            key          action                help
-            # -----            ------       ------                ----
-            ("escape",         None,        lambda: quit(),       '[ESC]: Quit'),
-            ("arrow_left",     'left',      key_on("left"),       "[Left Arrow]: Rotate Left"),
-            ("arrow_right",    'right',     key_on("right"),      "[Right Arrow]: Rotate Right"),
-            ("arrow_up",       'forward',   key_on("forward"),    "[Up Arrow]: Run Forward"),
-            ("arrow_down",     'backward',  key_on("backward"),   "[Down Arrow]: Run Backward"),
-            ("a",              'cam-left',  key_on("cam-left"),   "[A]: Rotate Camera Left"),
-            ("s",              'cam-right', key_on("cam-right"),  "[S]: Rotate Camera Right"),
-            ("arrow_left-up",  'left',      key_off("left"),      None),
-            ("arrow_right-up", 'right',     key_off("right"),     None),
-            ("arrow_up-up",    'forward',   key_off("forward"),   None),
-            ("arrow_down-up",  'backward',  key_off("backward"),  None),
-            ("a-up",           'cam-left',  key_off("cam-left"),  None),
-            ("s-up",           'cam-right', key_off("cam-right"), None),
-            ('f',              'first-pers',lambda: toggle_first(),'[F]: Toggle first-person'),
+            # key              command        action                   help
+            # ---              -------        ------                   ----
+            ("escape",         "esc",         lambda: quit(),          '[ESC]: Quit'),
+            ("arrow_left",     'left',        key_dn("left"),          "[Left Arrow]: Rotate Left"),
+            ("arrow_left-up",  'left',        key_up("left"),          None),
+            ("arrow_right",    'right',       key_dn("right"),         "[Right Arrow]: Rotate Right"),
+            ("arrow_right-up", 'right',       key_up("right"),         None),
+            ("arrow_up",       'forward',     key_dn("forward"),       "[Up Arrow]: Run Forward"),
+            ("arrow_up-up",    'forward',     key_up("forward"),       None),
+            ("arrow_down",     'backward',    key_dn("backward"),      "[Down Arrow]: Run Backward"),
+            ("arrow_down-up",  'backward',    key_up("backward"),      None),
+            ("a",              'cam-left',    key_dn("cam-left"),      "[A]: Rotate Camera Left"),
+            ("a-up",           'cam-left',    key_up("cam-left"),      None),
+            ("s",              'cam-right',   key_dn("cam-right"),     "[S]: Rotate Camera Right"),
+            ("s-up",           'cam-right',   key_up("cam-right"),     None),
+            ('f',              'first-pers',  lambda: toggle_first(),  '[F]: Toggle first-person'),
             ]
         self.keyMap = {}
         inst = Instructions()
-        for alias, key, action, description in key_map:
-            self.setKey(key, False)
-            self.accept(alias, action)
+        for key, command, action, description in key_map:
+            if command:
+                self.setKey(command, False)
+            self.accept(key, action)
             if description:
                 inst.add(description)
 
