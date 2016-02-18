@@ -82,13 +82,16 @@ class Game(ShowBase):
         self.floater.reparentTo(self.player)
         self.floater.setZ(CAMERA_TARGET_HEIGHT_DELTA)
 
+        self.first_person = False
+
         def key_on(name):
             return lambda: self.setKey(name, True)
         def key_off(name):
             return lambda: self.setKey(name, False)
         def quit():
             self.destroy()
-            #self.finalizeExit()
+        def toggle_first():
+            self.first_person = not self.first_person
         # Accept the control keys for movement and rotation
         key_map = [
             # alias            key          action                help
@@ -106,6 +109,7 @@ class Game(ShowBase):
             ("arrow_down-up",  'backward',  key_off("backward"),  None),
             ("a-up",           'cam-left',  key_off("cam-left"),  None),
             ("s-up",           'cam-right', key_off("cam-right"), None),
+            ('f',              'first-pers',lambda: toggle_first(),'[F]: Toggle first-person'),
             ]
         self.keyMap = {}
         inst = Instructions()
@@ -225,16 +229,19 @@ class Game(ShowBase):
         # If the camera is too far from player, move it closer.
         # If the camera is too close to player, move it farther.
 
-        camvec = self.player.getPos() - self.camera.getPos()
-        camvec.setZ(0)
-        camdist = camvec.length()
-        camvec.normalize()
-        if camdist > CAMERA_DISTANCE_MAX:
-            self.camera.setPos(self.camera.getPos() + camvec * (camdist - int(CAMERA_DISTANCE_MAX)))
-            camdist = CAMERA_DISTANCE_MAX
-        if camdist < CAMERA_DISTANCE_MIN:
-            self.camera.setPos(self.camera.getPos() - camvec * (int(CAMERA_DISTANCE_MIN) - camdist))
-            camdist = CAMERA_DISTANCE_MIN
+        if self.first_person:
+            self.camera.setPos(self.player.getPos())
+        else:
+            camvec = self.player.getPos() - self.camera.getPos()
+            camvec.setZ(0)
+            camdist = camvec.length()
+            camvec.normalize()
+            if camdist > CAMERA_DISTANCE_MAX:
+                self.camera.setPos(self.camera.getPos() + camvec * (camdist - int(CAMERA_DISTANCE_MAX)))
+                camdist = CAMERA_DISTANCE_MAX
+                if camdist < CAMERA_DISTANCE_MIN:
+                    self.camera.setPos(self.camera.getPos() - camvec * (int(CAMERA_DISTANCE_MIN) - camdist))
+                    camdist = CAMERA_DISTANCE_MIN
 
         # Normally, we would have to call traverse() to check for collisions.
         # However, the class ShowBase that we inherit from has a task to do
